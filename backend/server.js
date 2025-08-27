@@ -1,3 +1,4 @@
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -20,14 +21,25 @@ const io = socketIo(server, {
   }
 });
 
-app.set('trust proxy', true); // Trust the first proxy
+app.set('trust proxy', 1); // Trust the first proxy
 
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:3000",
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
+
+// Manual CORS headers as fallback
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  next();
+});
 
 // Rate limiting - exclude auth routes to prevent login issues
 const limiter = rateLimit({
@@ -61,15 +73,31 @@ app.use(require('express-session')({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// MongoDB connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/doctor-booking')
-.then(() => console.log('Connected to MongoDB'))
-.catch(err => {
-  console.error('MongoDB connection error:', err.message);
-  console.log('Server running without database connection - some features may be limited');
+// MongoDB connection - only connect if not in test environment
+if (process.env.NODE_ENV !== 'test') {
+  mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/doctor-booking')
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => {
+    console.error('MongoDB connection error:', err.message);
+    console.log('Server running without database connection - some features may be limited');
+  });
+}
+
+// Health check and test routes
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'Server is running',
+    timestamp: new Date().toISOString()
+  });
 });
 
-// Routes
+app.get('/api/test', (req, res) => {
+  res.status(200).json({
+    message: 'Test endpoint working'
+  });
+});
+
+// API Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/doctors', require('./routes/doctors'));
@@ -109,10 +137,14 @@ app.use('*', (req, res) => {
  });
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📡 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
-  console.log(`🔌 Socket.io enabled for real-time features`);
-});
 
-module.exports = { app, io };
+// Only start server if not in test environment
+if (process.env.NODE_ENV !== 'test') {
+  server.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📡 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
+    console.log(`🔌 Socket.io enabled for real-time features`);
+  });
+}
+
+module.exports = { app, io, server };

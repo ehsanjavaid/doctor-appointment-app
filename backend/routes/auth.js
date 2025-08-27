@@ -1,14 +1,12 @@
 const express = require('express');
 const router = express.Router();
+const passport = require('passport');
+const { body, validationResult } = require('express-validator');
+const { protect } = require('../middleware/auth');
+const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const passport = require('passport');
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const TwitterStrategy = require('passport-twitter').Strategy;
-const { body, validationResult } = require('express-validator');
-const User = require('../models/User');
-const { protect, authorize, rateLimit } = require('../middleware/auth');
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -17,133 +15,7 @@ const generateToken = (id) => {
   });
 };
 
-// Configure Passport Google Strategy
-passport.use(new GoogleStrategy({
-  clientID: process.env.GOOGLE_CLIENT_ID || 'your-google-client-id',
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'your-google-client-secret',
-  callbackURL: process.env.GOOGLE_CALLBACK_URL || '/api/auth/google/callback'
-}, async (accessToken, refreshToken, profile, done) => {
-  try {
-    let user = await User.findOne({ 
-      $or: [
-        { googleId: profile.id },
-        { email: profile.emails[0].value }
-      ]
-    });
-
-    if (user) {
-      // Update existing user with Google info
-      user.googleId = profile.id;
-      user.oauthProvider = 'google';
-      user.oauthAccessToken = accessToken;
-      user.oauthRefreshToken = refreshToken;
-      user.isVerified = true;
-      await user.save();
-    } else {
-      // Create new user
-      user = await User.create({
-        name: profile.displayName,
-        email: profile.emails[0].value,
-        googleId: profile.id,
-        oauthProvider: 'google',
-        oauthAccessToken: accessToken,
-        oauthRefreshToken: refreshToken,
-        isVerified: true,
-        role: 'patient',
-        phone: '000-000-0000' // Default phone number
-      });
-    }
-
-    return done(null, user);
-  } catch (error) {
-    return done(error, null);
-  }
-}));
-
-// Configure Passport Twitter Strategy
-passport.use(new TwitterStrategy({
-  consumerKey: process.env.TWITTER_CONSUMER_KEY || 'your-twitter-consumer-key',
-  consumerSecret: process.env.TWITTER_CONSUMER_SECRET || 'your-twitter-consumer-secret',
-  callbackURL: process.env.TWITTER_CALLBACK_URL || '/api/auth/twitter/callback',
-  includeEmail: true
-}, async (accessToken, refreshToken, profile, done) => {
-  try {
-    let user = await User.findOne({ 
-      $or: [
-        { twitterId: profile.id },
-        { email: profile.emails && profile.emails[0] ? profile.emails[0].value : null }
-      ]
-    });
-
-    if (user) {
-      // Update existing user with Twitter info
-      user.twitterId = profile.id;
-      user.oauthProvider = 'twitter';
-      user.oauthAccessToken = accessToken;
-      user.oauthRefreshToken = refreshToken;
-      user.isVerified = true;
-      await user.save();
-    } else {
-      // Create new user
-      user = await User.create({
-        name: profile.displayName,
-        email: profile.emails && profile.emails[0] ? profile.emails[0].value : `twitter-${profile.id}@example.com`,
-        twitterId: profile.id,
-        oauthProvider: 'twitter',
-        oauthAccessToken: accessToken,
-        oauthRefreshToken: refreshToken,
-        isVerified: true,
-        role: 'patient',
-        phone: '000-000-0000' // Default phone number
-      });
-    }
-
-    return done(null, user);
-  } catch (error) {
-    return done(error, null);
-  }
-}));
-
-// Serialize user for session
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
-
-// Deserialize user from session
-passport.deserializeUser(async (id, done) => {
-  try {
-    const user = await User.findById(id);
-    done(null, user);
-  } catch (error) {
-    done(error, null);
-  }
-});
-
-// Helper function to handle OAuth success
-const handleOAuthSuccess = async (req, res) => {
-  try {
-    const user = req.user;
-    const token = generateToken(user._id);
-
-    // Redirect to frontend with token
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    res.redirect(`${frontendUrl}/oauth-success?token=${token}&userId=${user._id}`);
-  } catch (error) {
-    console.error('OAuth success error:', error);
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    res.redirect(`${frontendUrl}/login?error=oauth_failed`);
-  }
-};
-
-// Helper function to handle OAuth failure
-const handleOAuthFailure = (req, res) => {
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-  res.redirect(`${frontendUrl}/login?error=oauth_failed`);
-};
-
-// @desc    Register user
-// @route   POST /api/auth/register
-// @access  Public
+// ====== Registration ======
 router.post('/register', [
   body('name').trim().isLength({ min: 2, max: 50 }).withMessage('Name must be between 2 and 50 characters'),
   body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
@@ -151,10 +23,11 @@ router.post('/register', [
   body('phone').matches(/^[\+]?[1-9][\d]{0,15}$/).withMessage('Please provide a valid phone number'),
   body('role').isIn(['patient', 'doctor']).withMessage('Role must be either patient or doctor'),
   body('specialization').if(body('role').equals('doctor')).notEmpty().withMessage('Specialization is required for doctors'),
-  body('experience').if(body('role').equals('doctor')).isInt({ min: 0 }).withMessage('Experience must be a positive number'),
+  body('experience').if(body('role').equals('doctor')).isInt({ min: 0 }).withMessage('Experience must be positive'),
+  body('education').if(body('role').equals('doctor')).notEmpty().withMessage('Education is required for doctors'),
   body('hospital').if(body('role').equals('doctor')).notEmpty().withMessage('Hospital is required for doctors'),
   body('city').if(body('role').equals('doctor')).notEmpty().withMessage('City is required for doctors'),
-  body('consultationFee').if(body('role').equals('doctor')).isFloat({ min: 0 }).withMessage('Consultation fee must be a positive number')
+  body('consultationFee').if(body('role').equals('doctor')).isFloat({ min: 0 }).withMessage('Consultation fee must be positive')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -165,7 +38,8 @@ router.post('/register', [
       });
     }
 
-    const { name, email, password, phone, role, specialization, experience, hospital, city, consultationFee } = req.body;
+    console.log('Registration data:', req.body);
+    const { name, email, password, phone, role, specialization, experience, hospital, city, consultationFee, education } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -186,6 +60,7 @@ router.post('/register', [
     if (role === 'doctor') {
       userData.specialization = specialization;
       userData.experience = experience;
+      userData.education = education;
       userData.hospital = hospital;
       userData.city = city;
       userData.consultationFee = consultationFee;
@@ -214,7 +89,13 @@ router.post('/register', [
         name: user.name,
         email: user.email,
         role: user.role,
-        isVerified: user.isVerified
+        isVerified: user.isVerified,
+        specialization: user.specialization,
+        experience: user.experience,
+        education: user.education,
+        hospital: user.hospital,
+        city: user.city,
+        consultationFee: user.consultationFee
       }
     });
 
@@ -227,9 +108,7 @@ router.post('/register', [
   }
 });
 
-// @desc    Login user
-// @route   POST /api/auth/login
-// @access  Public
+// ====== Login ======
 router.post('/login', [
   body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
   body('password').notEmpty().withMessage('Password is required')
@@ -269,10 +148,24 @@ router.post('/login', [
     if (!isMatch) {
       console.log('Password mismatch - handling failed login attempt');
       // Handle failed login attempt
-      await user.handleFailedLogin(); // Ensure this is awaited
-      await user.save(); // Ensure the user document is saved after failed login
+      await user.handleFailedLogin();
       
       // Check if account got locked after this attempt
+      const updatedUser = await User.findById(user._id);
+      if (updatedUser.isAccountLocked()) {
+        const remainingLockTime = updatedUser.getRemainingLockTime();
+        return res.status(403).json({ 
+          message: `Account is temporarily locked due to too many failed login attempts. Please try again in ${remainingLockTime} minutes.` 
+        });
+      }
+      
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // Reset failed login attempts on successful login
+    user.failedLoginAttempts = 0;
+    user.accountLockedUntil = null;
+    await user.save();
 
     // Generate JWT token
     const token = generateToken(user._id);
@@ -297,9 +190,7 @@ router.post('/login', [
   }
 });
 
-// @desc    Get current user
-// @route   GET /api/auth/me
-// @access  Private
+// ====== Get Current User ======
 router.get('/me', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('-password');
@@ -313,9 +204,15 @@ router.get('/me', protect, async (req, res) => {
   }
 });
 
-// @desc    Verify email
-// @route   POST /api/auth/verify-email
-// @access  Public
+// ====== Logout ======
+router.post('/logout', protect, (req, res) => {
+  res.json({
+    success: true,
+    message: 'Logout successful'
+  });
+});
+
+// ====== Email Verification ======
 router.post('/verify-email', [
   body('token').notEmpty().withMessage('Verification token is required')
 ], async (req, res) => {
@@ -363,12 +260,10 @@ router.post('/verify-email', [
   }
 });
 
-// @desc    Forgot password
-// @route   POST /api/auth/forgot-password
-// @access  Public
+// ====== Forgot / Reset Password ======
 router.post('/forgot-password', [
   body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email')
-], rateLimit(3, 60 * 60 * 1000), async (req, res) => {
+], async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -403,9 +298,6 @@ router.post('/forgot-password', [
   }
 });
 
-// @desc    Reset password
-// @route   POST /api/auth/reset-password
-// @access  Public
 router.post('/reset-password', [
   body('token').notEmpty().withMessage('Reset token is required'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
@@ -454,11 +346,8 @@ router.post('/reset-password', [
   }
 });
 
-// @desc    Change password
-// @route   PUT /api/auth/change-password
-// @access  Private
-router.put('/change-password', [
-  protect,
+// ====== Change Password ======
+router.put('/change-password', protect, [
   body('currentPassword').notEmpty().withMessage('Current password is required'),
   body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters')
 ], async (req, res) => {
@@ -497,52 +386,46 @@ router.put('/change-password', [
   }
 });
 
-// @desc    Logout user
-// @route   POST /api/auth/logout
-// @access  Private
-router.post('/logout', protect, (req, res) => {
-  res.json({
-    success: true,
-    message: 'Logout successful'
-  });
+// ====== Google OAuth ======
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/api/auth/google/failure' }), (req, res) => {
+  try {
+    const user = req.user;
+    const token = generateToken(user._id);
+
+    // Redirect to frontend with token
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    res.redirect(`${frontendUrl}/oauth-success?token=${token}&userId=${user._id}`);
+  } catch (error) {
+    console.error('OAuth success error:', error);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    res.redirect(`${frontendUrl}/login?error=oauth_failed`);
+  }
+});
+router.get('/google/failure', (req, res) => {
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  res.redirect(`${frontendUrl}/login?error=oauth_failed`);
 });
 
-// @desc    Google OAuth login
-// @route   GET /api/auth/google
-// @access  Public
-router.get('/google', passport.authenticate('google', {
-  scope: ['profile', 'email']
-}));
-
-// @desc    Google OAuth callback
-// @route   GET /api/auth/google/callback
-// @access  Public
-router.get('/google/callback',
-  passport.authenticate('google', { failureRedirect: '/api/auth/google/failure' }),
-  handleOAuthSuccess
-);
-
-// @desc    Google OAuth failure
-// @route   GET /api/auth/google/failure
-// @access  Public
-router.get('/google/failure', handleOAuthFailure);
-
-// @desc    Twitter OAuth login
-// @route   GET /api/auth/twitter
-// @access  Public
+// ====== Twitter OAuth ======
 router.get('/twitter', passport.authenticate('twitter'));
+router.get('/twitter/callback', passport.authenticate('twitter', { failureRedirect: '/api/auth/twitter/failure' }), (req, res) => {
+  try {
+    const user = req.user;
+    const token = generateToken(user._id);
 
-// @desc    Twitter OAuth callback
-// @route   GET /api/auth/twitter/callback
-// @access  Public
-router.get('/twitter/callback',
-  passport.authenticate('twitter', { failureRedirect: '/api/auth/twitter/failure' }),
-  handleOAuthSuccess
-);
-
-// @desc    Twitter OAuth failure
-// @route   GET /api/auth/twitter/failure
-// @access  Public
-router.get('/twitter/failure', handleOAuthFailure);
+    // Redirect to frontend with token
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    res.redirect(`${frontendUrl}/oauth-success?token=${token}&userId=${user._id}`);
+  } catch (error) {
+    console.error('OAuth success error:', error);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    res.redirect(`${frontendUrl}/login?error=oauth_failed`);
+  }
+});
+router.get('/twitter/failure', (req, res) => {
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  res.redirect(`${frontendUrl}/login?error=oauth_failed`);
+});
 
 module.exports = router;

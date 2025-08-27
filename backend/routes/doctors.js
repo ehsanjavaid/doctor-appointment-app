@@ -141,8 +141,7 @@ router.get('/', [
 router.get('/:id', async (req, res) => {
   try {
     const doctor = await User.findById(req.params.id)
-      .select('-password -resetPasswordToken -resetPasswordExpire -emailVerificationToken -emailVerificationExpire')
-      .populate('reviews', 'rating comment createdAt');
+      .select('-password -resetPasswordToken -resetPasswordExpire -emailVerificationToken -emailVerificationExpire');
 
     if (!doctor || doctor.role !== 'doctor') {
       return res.status(404).json({ message: 'Doctor not found' });
@@ -166,7 +165,7 @@ router.get('/:id', async (req, res) => {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
       
-      const dayName = date.toLocaleDateString('en-US', { weekday: 'lowercase' });
+      const dayName = date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
       const dayAvailability = doctor.availability.find(av => av.day === dayName);
       
       if (dayAvailability) {
@@ -334,7 +333,7 @@ router.get('/:id/availability', [
 
     if (date) {
       const targetDate = new Date(date);
-      const dayName = targetDate.toLocaleDateString('en-US', { weekday: 'lowercase' });
+      const dayName = targetDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
       availability = doctor.availability.filter(av => av.day === dayName);
     }
 
