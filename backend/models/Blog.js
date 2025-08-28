@@ -98,7 +98,6 @@ const blogSchema = new mongoose.Schema({
 });
 
 // Index for efficient queries
-blogSchema.index({ slug: 1 });
 blogSchema.index({ status: 1, publishedAt: -1 });
 blogSchema.index({ category: 1, publishedAt: -1 });
 blogSchema.index({ author: 1, publishedAt: -1 });
@@ -130,13 +129,30 @@ blogSchema.methods.calculateReadingTime = function() {
   return this.readingTime;
 };
 
-// Method to generate slug from title
-blogSchema.methods.generateSlug = function() {
-  this.slug = this.title
+// Method to generate slug from title with duplicate handling
+blogSchema.methods.generateSlug = async function() {
+  let baseSlug = this.title
     .toLowerCase()
     .replace(/[^\w\s-]/g, '')
     .replace(/[\s_-]+/g, '-')
     .replace(/^-+|-+$/g, '');
+  
+  let slug = baseSlug;
+  let counter = 1;
+  
+  // Check if slug already exists and add counter if it does
+  while (true) {
+    const existingPost = await this.constructor.findOne({ slug });
+    // For new documents (this._id is undefined), check if slug exists
+    // For existing documents, check if slug exists for a different document
+    if (!existingPost || (this._id && existingPost._id.equals(this._id))) {
+      break;
+    }
+    slug = `${baseSlug}-${counter}`;
+    counter++;
+  }
+  
+  this.slug = slug;
   return this.slug;
 };
 

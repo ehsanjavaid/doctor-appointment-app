@@ -84,11 +84,11 @@ const Layout = ({ children }) => {
                 <div className="relative group">
                   <button className="flex items-center space-x-2 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors">
                     <img
-                      src={user?.profilePicture || '/images/default-avatar.png'}
+                      src={user?.profilePicture || '/doctor.jpg'}
                       alt="Profile"
                       className="w-8 h-8 rounded-full object-cover"
                       onError={(e) => {
-                        e.target.src = '/images/default-avatar.png';
+                        e.target.src = 'doctor.jpg';
                       }}
                     />
                     <span>{user?.name}</span>
@@ -174,11 +174,11 @@ const Layout = ({ children }) => {
                   <div className="pt-4 border-t border-gray-200">
                     <div className="flex items-center space-x-3 mb-4">
                       <img
-                        src={user?.profilePicture || '/images/default-avatar.png'}
+                        src={user?.profilePicture || 'doctor.jpg'}
                         alt="Profile"
                         className="w-10 h-10 rounded-full object-cover"
                         onError={(e) => {
-                          e.target.src = '/images/default-avatar.png';
+                          e.target.src = '/doctor.jpg';
                         }}
                       />
                       <div>

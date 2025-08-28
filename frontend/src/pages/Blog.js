@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Filter, Calendar, TrendingUp, Clock } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { blogAPI } from '../utils/api';
 import BlogCard from '../components/blog/BlogCard';
+import { useAuth } from '../contexts/AuthContext';
 
 const Blog = () => {
   const [posts, setPosts] = useState([]);
@@ -13,6 +15,8 @@ const Blog = () => {
   const [sortBy, setSortBy] = useState('newest');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const categories = [
     { value: 'all', label: 'All Categories' },
@@ -55,180 +59,39 @@ const Blog = () => {
         response = await blogAPI.getAll(params);
       }
 
-      // For now, we'll use mock data since backend is placeholder
-      // Once backend is implemented, use: setPosts(response.data.posts);
-      // setTotalPages(response.data.pages);
-      
-      // Mock data for demonstration
-      const mockPosts = [
-        {
-          _id: '1',
-          title: '10 Essential Health Tips for Busy Professionals',
-          slug: '10-essential-health-tips',
-          excerpt: 'Discover practical health tips that busy professionals can easily incorporate into their daily routines to maintain optimal wellness.',
-          content: 'Full content here...',
-          author: {
-            _id: '1',
-            name: 'Dr. Sarah Johnson',
-            profilePicture: ''
-          },
-          category: 'general-health',
-          tags: ['health', 'wellness', 'professional', 'tips'],
-          featuredImage: '/blockimages/img1.jpg',
-          publishedAt: '2024-01-15T10:00:00Z',
-          readingTime: 5,
-          views: 1245,
-          likes: 89,
-          status: 'published',
-          isPublished: true
-        },
-        {
-          _id: '2',
-          title: 'Understanding Mental Health: Breaking the Stigma',
-          slug: 'understanding-mental-health',
-          excerpt: 'Learn about the importance of mental health awareness and how we can work together to break the stigma surrounding mental health issues.',
-          content: 'Full content here...',
-          author: {
-            _id: '2',
-            name: 'Dr. Michael Chen',
-            profilePicture: ''
-          },
-          category: 'mental-health',
-          tags: ['mental-health', 'awareness', 'stigma', 'wellbeing'],
-          featuredImage: '/blockimages/img2.jpg',
-          publishedAt: '2024-01-10T14:30:00Z',
-          readingTime: 8,
-          views: 987,
-          likes: 67,
-          status: 'published',
-          isPublished: true
-        },
-        {
-          _id: '3',
-          title: 'Nutrition Guide: Building Healthy Eating Habits',
-          slug: 'nutrition-guide-healthy-habits',
-          excerpt: 'A comprehensive guide to developing sustainable healthy eating habits that support your overall wellbeing and energy levels.',
-          content: 'Full content here...',
-          author: {
-            _id: '3',
-            name: 'Dr. Emily Rodriguez',
-            profilePicture: ''
-          },
-          category: 'nutrition',
-          tags: ['nutrition', 'diet', 'healthy-eating', 'habits'],
-          featuredImage: '/blockimages/img3.jpg',
-          publishedAt: '2024-01-05T09:15:00Z',
-          readingTime: 6,
-          views: 1567,
-          likes: 112,
-          status: 'published',
-          isPublished: true
-        },
-        {
-          _id: '4',
-          title: 'Cardiovascular Health: Exercise and Diet Tips',
-          slug: 'cardiovascular-health-tips',
-          excerpt: 'Essential exercise and diet recommendations to maintain optimal cardiovascular health and reduce heart disease risk.',
-          content: 'Full content here...',
-          author: {
-            _id: '4',
-            name: 'Dr. James Wilson',
-            profilePicture: ''
-          },
-          category: 'cardiology',
-          tags: ['cardiology', 'heart-health', 'exercise', 'diet'],
-          featuredImage: '/images/blog/cardio-health.jpg',
-          publishedAt: '2024-01-03T16:45:00Z',
-          readingTime: 7,
-          views: 876,
-          likes: 54,
-          status: 'published',
-          isPublished: true
-        },
-        {
-          _id: '5',
-          title: 'Pediatric Care: Keeping Children Healthy',
-          slug: 'pediatric-care-children-health',
-          excerpt: 'Expert advice on pediatric care and maintaining children\'s health through proper nutrition, exercise, and preventive care.',
-          content: 'Full content here...',
-          author: {
-            _id: '5',
-            name: 'Dr. Lisa Thompson',
-            profilePicture: ''
-          },
-          category: 'pediatrics',
-          tags: ['pediatrics', 'children-health', 'parenting', 'care'],
-          featuredImage: '/images/blog/pediatric-care.jpg',
-          publishedAt: '2024-01-01T11:20:00Z',
-          readingTime: 9,
-          views: 1342,
-          likes: 78,
-          status: 'published',
-          isPublished: true
-        },
-        {
-          _id: '6',
-          title: 'Dermatology Basics: Skin Care Routine',
-          slug: 'dermatology-skin-care-routine',
-          excerpt: 'Learn the fundamentals of an effective skin care routine and how to address common dermatological concerns.',
-          content: 'Full content here...',
-          author: {
-            _id: '6',
-            name: 'Dr. Amanda Lee',
-            profilePicture: ''
-          },
-          category: 'dermatology',
-          tags: ['dermatology', 'skin-care', 'routine', 'beauty'],
-          featuredImage: '/images/blog/skin-care.jpg',
-          publishedAt: '2023-12-28T13:10:00Z',
-          readingTime: 5,
-          views: 2109,
-          likes: 145,
-          status: 'published',
-          isPublished: true
-        }
-      ];
-
-      setPosts(mockPosts);
-      setTotalPages(1);
+      // Use real data from backend
+      setPosts(response.data.posts);
+      setTotalPages(response.data.pages);
       setLoading(false);
 
     } catch (err) {
       console.error('Error fetching blog posts:', err);
       setError('Failed to load blog posts. Please try again later.');
       setLoading(false);
-      
-      // Fallback to mock data on error for demonstration
-      const mockPosts = [
-        {
-          _id: '1',
-          title: 'Sample Blog Post: Health and Wellness',
-          slug: 'sample-blog-post',
-          excerpt: 'This is a sample blog post demonstrating the blog functionality. Real data will be loaded when the backend API is implemented.',
-          content: 'Full content here...',
-          author: {
-            _id: '1',
-            name: 'Demo Author',
-            profilePicture: ''
-          },
-          category: 'general-health',
-          tags: ['sample', 'demo', 'health'],
-          featuredImage: '',
-          publishedAt: new Date().toISOString(),
-          readingTime: 3,
-          views: 0,
-          likes: 0,
-          status: 'published',
-          isPublished: true
-        }
-      ];
-      setPosts(mockPosts);
+      setPosts([]); // Clear posts on error
     }
   };
 
   useEffect(() => {
     fetchBlogPosts();
   }, [searchQuery, selectedCategory, sortBy, currentPage]);
+
+  // Listen for navigation events to refresh posts when coming from blog creation
+  useEffect(() => {
+    const handleNavigation = () => {
+      fetchBlogPosts();
+    };
+
+    // Add event listener for navigation
+    window.addEventListener('popstate', handleNavigation);
+    
+    // Also refresh when component mounts (in case we navigated here via pushState)
+    fetchBlogPosts();
+
+    return () => {
+      window.removeEventListener('popstate', handleNavigation);
+    };
+  }, []);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -243,6 +106,14 @@ const Blog = () => {
   const handleSortChange = (sort) => {
     setSortBy(sort);
     setCurrentPage(1);
+  };
+
+  const handleCreateBlogPost = () => {
+    if (user) {
+      navigate('/blog-dashboard');
+    } else {
+      navigate('/login', { state: { from: '/blog' } });
+    }
   };
 
   if (loading) {
@@ -288,9 +159,18 @@ const Blog = () => {
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             Health Blog
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
             Discover the latest health insights, medical advice, and wellness tips from our expert doctors and healthcare professionals.
           </p>
+          <button
+            onClick={handleCreateBlogPost}
+            className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Create Your Own Blog Post
+          </button>
         </motion.div>
 
         {/* Search and Filters */}

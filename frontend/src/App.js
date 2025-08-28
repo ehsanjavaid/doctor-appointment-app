@@ -17,6 +17,7 @@ import DoctorSearch from './pages/DoctorSearch';
 import DoctorProfile from './pages/DoctorProfile';
 import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
+import BlogDashboard from './pages/BlogDashboard';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import OAuthSuccess from './pages/OAuthSuccess';
@@ -105,6 +106,11 @@ function App() {
                 <Route path="/reviews" element={
                   <ProtectedRoute>
                     <Layout><Reviews /></Layout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/blog-dashboard" element={
+                  <ProtectedRoute>
+                    <Layout><BlogDashboard /></Layout>
                   </ProtectedRoute>
                 } />
 

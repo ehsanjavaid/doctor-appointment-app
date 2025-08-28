@@ -89,7 +89,7 @@ const BlogPost = () => {
       },
       category: 'general-health',
       tags: ['health', 'wellness', 'professional', 'tips', 'lifestyle', 'productivity'],
-      featuredImage: '/images/blog/health-tips.jpg',
+      featuredImage: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=800&h=400&fit=crop',
       publishedAt: '2024-01-15T10:00:00Z',
       readingTime: 5,
       views: 1245,
@@ -119,7 +119,7 @@ const BlogPost = () => {
         <p>Common signs of mental health issues include persistent sadness, excessive fears or worries, extreme mood changes, withdrawal from friends and activities, and significant tiredness or low energy.</p>
         
         <h2>Getting Help</h2>
-        <p>If you or someone you know is struggling, reach out to a mental health professional. Treatment options include therapy, medication, support groups, and lifestyle changes.</p>
+        <p>If you or someone you know is struggling, reach out to a mental health professional. Treatment options include therapy, medication, support groups, and lifestyle choices.</p>
         
         <h2>Conclusion</h2>
         <p>Mental health is just as important as physical health. By understanding mental health conditions and working to eliminate stigma, we can create a more supportive and compassionate society for everyone.</p>
@@ -133,7 +133,7 @@ const BlogPost = () => {
       },
       category: 'mental-health',
       tags: ['mental-health', 'awareness', 'stigma', 'wellbeing', 'therapy'],
-      featuredImage: '/images/blog/mental-health.jpg',
+      featuredImage: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=800&h=400&fit=crop',
       publishedAt: '2024-01-10T14:30:00Z',
       readingTime: 8,
       views: 987,
@@ -180,7 +180,7 @@ const BlogPost = () => {
       },
       category: 'nutrition',
       tags: ['nutrition', 'diet', 'healthy-eating', 'habits', 'wellness'],
-      featuredImage: '/images/blog/nutrition.jpg',
+      featuredImage: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=800&h=400&fit=crop',
       publishedAt: '2024-01-05T09:15:00Z',
       readingTime: 6,
       views: 1567,
@@ -230,7 +230,7 @@ const BlogPost = () => {
       },
       category: 'cardiology',
       tags: ['cardiology', 'heart-health', 'exercise', 'diet', 'prevention'],
-      featuredImage: '/images/blog/cardio-health.jpg',
+      featuredImage: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=800&h=400&fit=crop',
       publishedAt: '2024-01-03T16:45:00Z',
       readingTime: 7,
       views: 876,
@@ -280,7 +280,7 @@ const BlogPost = () => {
       },
       category: 'pediatrics',
       tags: ['pediatrics', 'children-health', 'parenting', 'care', 'development'],
-      featuredImage: '/images/blog/pediatric-care.jpg',
+      featuredImage: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=800&h=400&fit=crop',
       publishedAt: '2024-01-01T11:20:00Z',
       readingTime: 9,
       views: 1342,
@@ -333,7 +333,7 @@ const BlogPost = () => {
       },
       category: 'dermatology',
       tags: ['dermatology', 'skin-care', 'routine', 'beauty', 'health'],
-      featuredImage: '/images/blog/skin-care.jpg',
+      featuredImage: '/blockimages/img6.jpg',
       publishedAt: '2023-12-28T13:10:00Z',
       readingTime: 5,
       views: 2109,
@@ -397,7 +397,7 @@ const BlogPost = () => {
           },
           category: 'mental-health',
           tags: ['mental-health', 'awareness', 'stigma'],
-          featuredImage: '/images/blog/mental-health.jpg',
+          featuredImage: '/blockimages/img2.jpg',
           publishedAt: '2024-01-10T14:30:00Z',
           readingTime: 8,
           views: 987,
@@ -417,7 +417,7 @@ const BlogPost = () => {
           },
           category: 'nutrition',
           tags: ['nutrition', 'diet', 'healthy-eating'],
-          featuredImage: '/images/blog/nutrition.jpg',
+          featuredImage: '/blockimages/img3.jpg',
           publishedAt: '2024-01-05T09:15:00Z',
           readingTime: 6,
           views: 1567,

@@ -90,7 +90,7 @@ const Home = () => {
             >
               <div className="relative z-10">
                 <img
-                  src="/images/hero-doctor.jpg"
+                  src="/doctor-hero-section.jpg"
                   alt="Doctor consultation"
                   className="w-full h-auto rounded-2xl shadow-2xl"
                   onError={(e) => {

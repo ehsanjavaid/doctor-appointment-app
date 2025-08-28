@@ -106,6 +106,7 @@ app.use('/api/payments', require('./routes/payments'));
 app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/blog', require('./routes/blog'));
+app.use('/api/upload', require('./routes/upload'));
 
 // Socket.io connection handling
 io.on('connection', (socket) => {
