@@ -8,6 +8,7 @@ const dotenv = require('dotenv');
 const http = require('http');
 const socketIo = require('socket.io');
 const passport = require('passport');
+const path = require('path');
 
 // Load environment variables
 dotenv.config();
@@ -106,8 +107,8 @@ app.use('/api/payments', require('./routes/payments'));
 app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/blog', require('./routes/blog'));
-app.use('/api/upload', require('./routes/upload'));
-
+app.use('/api/upload', require('./routes/upload')); // Register the upload route
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // Serve uploaded files
 // Socket.io connection handling
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);

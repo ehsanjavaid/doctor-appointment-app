@@ -83,7 +83,13 @@ const BlogEditor = ({ post, onSave, onCancel }) => {
         }, 500);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Error saving blog post');
+      if (err.response && err.response.data && err.response.data.message) {
+        setError(err.response.data.message);
+      } else if (err.message) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
