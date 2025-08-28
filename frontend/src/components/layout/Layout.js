@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
-import { 
-  Menu, 
-  X, 
-  User, 
-  LogOut, 
-  Settings, 
+import {
+  Menu,
+  X,
+  User,
+  LogOut,
+  Settings,
   Calendar,
   Stethoscope,
   Home,
@@ -23,19 +23,8 @@ import {
 
 const Layout = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
   const location = useLocation();
-
-  // Handle scroll effect
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   // Close mobile menu when route changes
   useEffect(() => {
@@ -63,11 +52,7 @@ const Layout = ({ children }) => {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled 
-          ? 'bg-white/95 backdrop-blur-md shadow-medium' 
-          : 'bg-transparent'
-      }`}>
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 lg:h-20">
             {/* Logo */}
@@ -75,9 +60,7 @@ const Layout = ({ children }) => {
               <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
                 <Stethoscope className="w-6 h-6 text-white" />
               </div>
-              <span className={`text-xl lg:text-2xl font-bold ${
-                isScrolled ? 'text-gray-900' : 'text-white'
-              }`}>
+              <span className="text-xl lg:text-2xl font-bold text-gray-900">
                 MedBook
               </span>
             </Link>
@@ -88,11 +71,7 @@ const Layout = ({ children }) => {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`text-sm font-medium transition-colors ${
-                    isScrolled 
-                      ? 'text-gray-700 hover:text-primary-600' 
-                      : 'text-white/90 hover:text-white'
-                  }`}
+                  className="text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors"
                 >
                   {item.name}
                 </Link>
@@ -114,7 +93,7 @@ const Layout = ({ children }) => {
                     />
                     <span>{user?.name}</span>
                   </button>
-                  
+
                   {/* Dropdown Menu */}
                   <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-large opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                     <div className="py-2">
@@ -142,11 +121,7 @@ const Layout = ({ children }) => {
                 <>
                   <Link
                     to="/login"
-                    className={`text-sm font-medium transition-colors ${
-                      isScrolled 
-                        ? 'text-gray-700 hover:text-primary-600' 
-                        : 'text-white/90 hover:text-white'
-                    }`}
+                    className="text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors"
                   >
                     Login
                   </Link>
@@ -194,7 +169,7 @@ const Layout = ({ children }) => {
                     <span>{item.name}</span>
                   </Link>
                 ))}
-                
+
                 {isAuthenticated ? (
                   <div className="pt-4 border-t border-gray-200">
                     <div className="flex items-center space-x-3 mb-4">
@@ -211,7 +186,7 @@ const Layout = ({ children }) => {
                         <div className="text-sm text-gray-500">{user?.role}</div>
                       </div>
                     </div>
-                    
+
                     {userMenuItems.map((item) => (
                       <Link
                         key={item.name}
@@ -222,7 +197,7 @@ const Layout = ({ children }) => {
                         <span>{item.name}</span>
                       </Link>
                     ))}
-                    
+
                     <button
                       onClick={handleLogout}
                       className="flex items-center space-x-3 py-2 text-base font-medium text-red-600 hover:text-red-700 transition-colors w-full"
@@ -271,7 +246,7 @@ const Layout = ({ children }) => {
                 <span className="text-xl font-bold">MedBook</span>
               </div>
               <p className="text-gray-300 mb-6 max-w-md">
-                Connecting patients with the best healthcare providers. Book appointments, 
+                Connecting patients with the best healthcare providers. Book appointments,
                 get consultations, and manage your health journey with ease.
               </p>
               <div className="flex space-x-4">
@@ -329,10 +304,10 @@ const Layout = ({ children }) => {
 
           <div className="border-t border-gray-800 mt-8 pt-8 text-center">
             <p className="text-gray-400">
-              © {new Date().getFullYear()} MedBook. All rights reserved. | 
+              © {new Date().getFullYear()} MedBook. All rights reserved. |
               <Link to="/privacy" className="text-gray-400 hover:text-white transition-colors ml-2">
                 Privacy Policy
-              </Link> | 
+              </Link> |
               <Link to="/terms" className="text-gray-400 hover:text-white transition-colors ml-2">
                 Terms of Service
               </Link>
