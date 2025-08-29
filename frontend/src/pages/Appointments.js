@@ -18,6 +18,64 @@ const Appointments = () => {
     consultationType: 'general'
   });
 
+  // Mock data for doctors
+  const mockDoctors = [
+    {
+      id: 1,
+      name: 'Dr. Sarah Chen',
+      specialization: 'Cardiology',
+      hospital: 'Main Hospital, Downtown',
+      consultationFee: 150,
+      city: 'Downtown',
+      availability: 'Tomorrow'
+    },
+    {
+      id: 2,
+      name: 'Dr. Michael Rodriguez',
+      specialization: 'Dermatology',
+      hospital: 'Skin Care Center, Westside',
+      consultationFee: 120,
+      city: 'Westside',
+      availability: 'Today'
+    },
+    {
+      id: 3,
+      name: 'Dr. James Wilson',
+      specialization: 'Orthopedics',
+      hospital: 'Sports Medicine Center',
+      consultationFee: 180,
+      city: 'Downtown',
+      availability: 'This week'
+    },
+    {
+      id: 4,
+      name: 'Dr. Emily Park',
+      specialization: 'Pediatrics',
+      hospital: 'Children\'s Hospital, Northside',
+      consultationFee: 100,
+      city: 'Northside',
+      availability: 'Tomorrow'
+    },
+    {
+      id: 5,
+      name: 'Dr. Robert Kim',
+      specialization: 'Neurology',
+      hospital: 'Neuro Center, Downtown',
+      consultationFee: 200,
+      city: 'Downtown',
+      availability: 'Next week'
+    },
+    {
+      id: 6,
+      name: 'Dr. Lisa Thompson',
+      specialization: 'Gynecology',
+      hospital: 'Women\'s Health Center',
+      consultationFee: 130,
+      city: 'Downtown',
+      availability: 'Today'
+    }
+  ];
+
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
@@ -30,21 +88,32 @@ const Appointments = () => {
       }
     };
 
-    const fetchDoctors = async () => {
-      try {
-        const response = await api.get('/api/doctors');
-        setDoctors(response.data.data || []);
-      } catch (err) {
-        console.error('Failed to fetch doctors:', err);
-      }
-    };
-
+    // Set doctors from mock data instead of API call
+    setDoctors(mockDoctors);
     fetchAppointments();
-    fetchDoctors();
   }, []);
 
   const handleAddAppointment = async (e) => {
     e.preventDefault();
+
+    // Basic client-side validation
+    if (!newAppointment.doctorId) {
+      setError('Please select a doctor.');
+      return;
+    }
+    if (!newAppointment.appointmentDate) {
+      setError('Please select an appointment date.');
+      return;
+    }
+    if (!newAppointment.appointmentTime) {
+      setError('Please select an appointment time.');
+      return;
+    }
+    if (!['online', 'offline'].includes(newAppointment.appointmentType)) {
+      setError('Please select a valid appointment type.');
+      return;
+    }
+
     try {
       const response = await api.post('/api/appointments', newAppointment);
       setAppointments((prev) => [...prev, response.data.data]);
@@ -58,14 +127,22 @@ const Appointments = () => {
       });
       setError('');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to add appointment. Please try again.');
+      const serverMessage = err.response?.data?.message;
+      const validationErrors = err.response?.data?.errors;
+      if (validationErrors && validationErrors.length > 0) {
+        setError(validationErrors.map(e => e.msg).join(', '));
+      } else if (serverMessage) {
+        setError(serverMessage);
+      } else {
+        setError('Failed to add appointment. Please try again.');
+      }
     }
   };
 
   const handleDoctorSelect = (doctor) => {
     setNewAppointment({
       ...newAppointment,
-      doctorId: doctor._id,
+      doctorId: doctor.id,
       doctorName: doctor.name
     });
     setShowDoctorsList(false);
@@ -139,7 +216,7 @@ const Appointments = () => {
                       <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
                         {doctors.map((doctor) => (
                           <div
-                            key={doctor._id}
+                            key={doctor.id}
                             className="px-3 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100"
                             onClick={() => handleDoctorSelect(doctor)}
                           >

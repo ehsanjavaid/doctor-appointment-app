@@ -41,6 +41,7 @@ router.post('/', [
 
     // Get doctor details
     const doctor = await User.findById(doctorId);
+    console.log('Doctor found for appointment:', doctor);
     if (!doctor || doctor.role !== 'doctor') {
       return res.status(404).json({ message: 'Doctor not found' });
     }
@@ -55,7 +56,7 @@ router.post('/', [
     }
 
     // Create appointment
-    const appointment = await Appointment.create({
+    const appointmentData = {
       patient: req.user._id,
       doctor: doctorId,
       appointmentDate,
@@ -65,7 +66,10 @@ router.post('/', [
       symptoms,
       notes,
       consultationFee: doctor.consultationFee
-    });
+    };
+    console.log('Creating appointment with data:', appointmentData);
+
+    const appointment = await Appointment.create(appointmentData);
 
     // Populate doctor and patient details
     await appointment.populate([

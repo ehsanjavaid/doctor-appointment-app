@@ -48,7 +48,13 @@ const BlogCard = ({ post }) => {
       {featuredImage && (
         <div className="relative overflow-hidden">
           <img
-            src={featuredImage}
+            src={
+              featuredImage.startsWith('http')
+                ? featuredImage
+                : featuredImage.startsWith('/')
+                  ? `${window.location.origin}${featuredImage}`
+                  : `${process.env.REACT_APP_API_BASE_URL || window.location.origin}/${featuredImage}`
+            }
             alt={title}
             className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
           />
@@ -101,7 +107,13 @@ const BlogCard = ({ post }) => {
               <div className="flex items-center">
                 {author.profilePicture ? (
                   <img
-                    src={author.profilePicture}
+                    src={
+                      author.profilePicture.startsWith('http')
+                        ? author.profilePicture
+                        : author.profilePicture.startsWith('/')
+                          ? `${window.location.origin}${author.profilePicture}`
+                          : `${process.env.REACT_APP_API_BASE_URL || window.location.origin}/${author.profilePicture}`
+                    }
                     alt={author.name}
                     className="w-6 h-6 rounded-full mr-2"
                   />

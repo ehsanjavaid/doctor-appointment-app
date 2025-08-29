@@ -65,7 +65,7 @@ const Blog = () => {
       setLoading(false);
 
     } catch (err) {
-      console.error('Error fetching blog posts:', err);
+      console.error('Error fetching blog posts:', err.response ? err.response.data : err.message);
       setError('Failed to load blog posts. Please try again later.');
       setLoading(false);
       setPosts([]); // Clear posts on error
@@ -73,7 +73,11 @@ const Blog = () => {
   };
 
   useEffect(() => {
-    fetchBlogPosts();
+    const fetchAllPosts = async () => {
+      const publishedPosts = await fetchBlogPosts();
+      setPosts(publishedPosts || []);
+    };
+    fetchAllPosts();
   }, [searchQuery, selectedCategory, sortBy, currentPage]);
 
   // Listen for navigation events to refresh posts when coming from blog creation
@@ -245,7 +249,18 @@ const Blog = () => {
           </div>
         </motion.div>
 
-        {/* Blog Posts Grid */}
+        {/* Published Posts Section */}
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Published Posts</h2>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12"
+        >
+          {posts.filter(post => post.status === 'published').map((post) => (
+            <BlogCard key={post._id} post={post} />
+          ))}
+        </motion.div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

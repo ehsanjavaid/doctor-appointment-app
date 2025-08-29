@@ -11,8 +11,7 @@ const BlogEditor = ({ post, onSave, onCancel }) => {
     excerpt: post?.excerpt || '',
     category: post?.category || 'general-health',
     tags: post?.tags?.join(', ') || '',
-    featuredImage: post?.featuredImage || '',
-    status: post?.status || 'draft'
+    featuredImage: post?.featuredImage || ''
   });
   
   const [loading, setLoading] = useState(false);
@@ -49,7 +48,7 @@ const BlogEditor = ({ post, onSave, onCancel }) => {
       if (imageFile) {
         try {
           const uploadResponse = await uploadFile(imageFile);
-          featuredImageUrl = uploadResponse.data.url;
+          featuredImageUrl = uploadResponse.data.filePath;
         } catch (uploadError) {
           setError('Failed to upload image. Please try again.');
           setLoading(false);
@@ -58,7 +57,7 @@ const BlogEditor = ({ post, onSave, onCancel }) => {
       }
 
       const blogData = {
-        status: formData.status,
+        status: 'published',
         title: formData.title,
         content: formData.content,
         excerpt: formData.excerpt,
@@ -267,15 +266,7 @@ const BlogEditor = ({ post, onSave, onCancel }) => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Status
             </label>
-            <select
-              name="status"
-              value={formData.status}
-              onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            >
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
-            </select>
+          {/* Removed status select as draft option is removed */}
           </div>
 
           {/* Action Buttons */}

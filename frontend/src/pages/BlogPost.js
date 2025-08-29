@@ -136,7 +136,15 @@ const BlogPost = () => {
           {post.featuredImage && (
             <div className="mb-8">
               <img
-                src={post.featuredImage}
+                src={
+                  post.featuredImage.startsWith('http') 
+                    ? post.featuredImage 
+                    : post.featuredImage.startsWith('/uploads/')
+                      ? `${window.location.origin}${post.featuredImage}`
+                      : post.featuredImage.startsWith('/')
+                        ? `${window.location.origin}${post.featuredImage}`
+                        : `${process.env.REACT_APP_API_BASE_URL || window.location.origin}/uploads/${post.featuredImage}`
+                }
                 alt={post.title}
                 className="w-full h-64 object-cover rounded-lg"
               />
