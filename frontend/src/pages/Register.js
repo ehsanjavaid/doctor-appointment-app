@@ -43,6 +43,8 @@ const Register = () => {
     }
   };
 
+  const role = watch('role');
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <motion.div
@@ -325,6 +327,7 @@ const Register = () => {
               )}
             </div>
 
+
             {/* Role Selection */}
             <div>
               <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
@@ -354,6 +357,178 @@ const Register = () => {
                 </motion.p>
               )}
             </div>
+
+            {/* Doctor Specific Fields */}
+            {role === 'doctor' && (
+              <>
+                <div>
+                  <label htmlFor="specialization" className="block text-sm font-medium text-gray-700 mb-2">
+                    Specialization
+                  </label>
+                  <input
+                    id="specialization"
+                    type="text"
+                    {...register('specialization', {
+                      required: 'Specialization is required for doctors'
+                    })}
+                    className={`block w-full px-3 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors ${
+                      errors.specialization ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter your specialization"
+                  />
+                  {errors.specialization && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-2 text-sm text-red-600 flex items-center"
+                    >
+                      <AlertCircle className="w-4 h-4 mr-1" />
+                      {errors.specialization.message}
+                    </motion.p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="experience" className="block text-sm font-medium text-gray-700 mb-2">
+                    Experience (years)
+                  </label>
+                  <input
+                    id="experience"
+                    type="number"
+                    min="0"
+                    {...register('experience', {
+                      required: 'Experience is required for doctors',
+                      min: { value: 0, message: 'Experience must be positive' }
+                    })}
+                    className={`block w-full px-3 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors ${
+                      errors.experience ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter your years of experience"
+                  />
+                  {errors.experience && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-2 text-sm text-red-600 flex items-center"
+                    >
+                      <AlertCircle className="w-4 h-4 mr-1" />
+                      {errors.experience.message}
+                    </motion.p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="education" className="block text-sm font-medium text-gray-700 mb-2">
+                    Education
+                  </label>
+                  <input
+                    id="education"
+                    type="text"
+                    {...register('education', {
+                      required: 'Education is required for doctors'
+                    })}
+                    className={`block w-full px-3 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors ${
+                      errors.education ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter your education"
+                  />
+                  {errors.education && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-2 text-sm text-red-600 flex items-center"
+                    >
+                      <AlertCircle className="w-4 h-4 mr-1" />
+                      {errors.education.message}
+                    </motion.p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="hospital" className="block text-sm font-medium text-gray-700 mb-2">
+                    Hospital
+                  </label>
+                  <input
+                    id="hospital"
+                    type="text"
+                    {...register('hospital', {
+                      required: 'Hospital is required for doctors'
+                    })}
+                    className={`block w-full px-3 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors ${
+                      errors.hospital ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter your hospital"
+                  />
+                  {errors.hospital && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-2 text-sm text-red-600 flex items-center"
+                    >
+                      <AlertCircle className="w-4 h-4 mr-1" />
+                      {errors.hospital.message}
+                    </motion.p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
+                    City
+                  </label>
+                  <input
+                    id="city"
+                    type="text"
+                    {...register('city', {
+                      required: 'City is required for doctors'
+                    })}
+                    className={`block w-full px-3 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors ${
+                      errors.city ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter your city"
+                  />
+                  {errors.city && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-2 text-sm text-red-600 flex items-center"
+                    >
+                      <AlertCircle className="w-4 h-4 mr-1" />
+                      {errors.city.message}
+                    </motion.p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="consultationFee" className="block text-sm font-medium text-gray-700 mb-2">
+                    Consultation Fee
+                  </label>
+                  <input
+                    id="consultationFee"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    {...register('consultationFee', {
+                      required: 'Consultation fee is required for doctors',
+                      min: { value: 0, message: 'Consultation fee must be positive' }
+                    })}
+                    className={`block w-full px-3 py-3 border rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors ${
+                      errors.consultationFee ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter your consultation fee"
+                  />
+                  {errors.consultationFee && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-2 text-sm text-red-600 flex items-center"
+                    >
+                      <AlertCircle className="w-4 h-4 mr-1" />
+                      {errors.consultationFee.message}
+                    </motion.p>
+                  )}
+                </div>
+              </>
+            )}
 
             {/* Terms Agreement */}
             <div className="flex items-center">

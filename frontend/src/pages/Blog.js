@@ -120,12 +120,46 @@ const Blog = () => {
     }
   };
 
-  if (loading) {
+  if (loading && posts.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center h-96">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+          {/* Skeleton Header */}
+          <div className="text-center mb-12">
+            <div className="h-12 bg-gray-200 rounded-lg w-64 mx-auto mb-4 animate-pulse"></div>
+            <div className="h-6 bg-gray-200 rounded-lg w-96 mx-auto mb-6 animate-pulse"></div>
+            <div className="h-12 bg-gray-200 rounded-lg w-48 mx-auto animate-pulse"></div>
+          </div>
+
+          {/* Skeleton Filters */}
+          <div className="bg-white rounded-xl p-6 shadow-soft mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <div key={i}>
+                  <div className="h-4 bg-gray-200 rounded w-32 mb-2 animate-pulse"></div>
+                  <div className="h-10 bg-gray-200 rounded-lg animate-pulse"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Skeleton Blog Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-white rounded-xl shadow-soft overflow-hidden animate-pulse">
+                <div className="h-48 bg-gray-200"></div>
+                <div className="p-6">
+                  <div className="h-6 bg-gray-200 rounded mb-3"></div>
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-2/3 mb-4"></div>
+                  <div className="flex justify-between">
+                    <div className="h-4 bg-gray-200 rounded w-20"></div>
+                    <div className="h-4 bg-gray-200 rounded w-16"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -137,7 +171,12 @@ const Blog = () => {
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center py-12">
-            <div className="text-red-600 text-lg mb-4">{error}</div>
+            <div className="text-red-600 text-lg mb-4">
+              <svg className="w-12 h-12 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              {error}
+            </div>
             <button
               onClick={fetchBlogPosts}
               className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
@@ -249,25 +288,19 @@ const Blog = () => {
           </div>
         </motion.div>
 
-        {/* Published Posts Section */}
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Published Posts</h2>
+        {/* Blog Posts Grid */}
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          {searchQuery ? `Search Results for "${searchQuery}"` : 
+           selectedCategory !== 'all' ? `${categories.find(c => c.value === selectedCategory)?.label} Posts` : 
+           'Latest Blog Posts'}
+        </h2>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12"
         >
-          {posts.filter(post => post.status === 'published').map((post) => (
-            <BlogCard key={post._id} post={post} />
-          ))}
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12"
-        >
-          {posts.map((post, index) => (
+          {posts.map((post) => (
             <BlogCard key={post._id} post={post} />
           ))}
         </motion.div>

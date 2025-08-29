@@ -2,18 +2,58 @@ const express = require('express');
 const router = express.Router();
 const Blog = require('../models/Blog');
 const { protect } = require('../middleware/auth');
+const { body, query, validationResult } = require('express-validator');
 
-// GET /api/blog - Get all published blog posts
-router.get('/', async (req, res) => {
+// Validation middleware
+const validateBlogQuery = [
+  query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
+  query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50'),
+  query('sortBy').optional().isIn(['publishedAt', 'views', 'likes', 'title', 'readingTime']).withMessage('Invalid sort field'),
+  query('sortOrder').optional().isIn(['asc', 'desc']).withMessage('Sort order must be asc or desc')
+];
+
+const validateBlogCreate = [
+  body('title').trim().isLength({ min: 1, max: 200 }).withMessage('Title must be between 1 and 200 characters'),
+  body('content').trim().isLength({ min: 1 }).withMessage('Content is required'),
+  body('category').isIn([
+    'general-health', 'mental-health', 'nutrition', 'fitness', 'pediatrics',
+    'cardiology', 'dermatology', 'orthopedics', 'neurology', 'oncology', 'other'
+  ]).withMessage('Invalid category'),
+  body('tags').optional().isArray().withMessage('Tags must be an array'),
+  body('status').optional().isIn(['draft', 'published', 'archived']).withMessage('Invalid status')
+];
+
+// GET /api/blog - Get all published blog posts with advanced filtering
+router.get('/', validateBlogQuery, async (req, res) => {
   try {
-    const { page = 1, limit = 12, category, search, sortBy = 'publishedAt', sortOrder = 'desc' } = req.query;
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        message: 'Validation failed', 
+        errors: errors.array() 
+      });
+    }
+
+    const { 
+      page = 1, 
+      limit = 12, 
+      category, 
+      search, 
+      sortBy = 'publishedAt', 
+      sortOrder = 'desc',
+      tags,
+      author
+    } = req.query;
     
     let query = { status: 'published', isPublished: true };
     
+    // Category filter
     if (category && category !== 'all') {
       query.category = category;
     }
     
+    // Search filter
     if (search) {
       query.$or = [
         { title: { $regex: search, $options: 'i' } },
@@ -22,26 +62,52 @@ router.get('/', async (req, res) => {
       ];
     }
     
+    // Tags filter
+    if (tags) {
+      const tagArray = Array.isArray(tags) ? tags : [tags];
+      query.tags = { $in: tagArray.map(tag => new RegExp(tag, 'i')) };
+    }
+    
+    // Author filter
+    if (author) {
+      query.author = author;
+    }
+    
     const sortOptions = {};
     sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
+    
+    // Add secondary sort for consistent ordering
+    if (sortBy !== 'publishedAt') {
+      sortOptions.publishedAt = -1;
+    }
+    
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
     
     const posts = await Blog.find(query)
       .populate('author', 'name profilePicture')
       .sort(sortOptions)
-      .limit(limit * 1)
-      .skip((page - 1) * limit)
-      .select('title slug excerpt featuredImage views likes publishedAt readingTime category tags');
+      .limit(limitNum)
+      .skip(skip)
+      .select('title slug excerpt featuredImage views likes shares publishedAt readingTime category tags author');
     
     const total = await Blog.countDocuments(query);
     
     res.json({
       posts,
       total,
-      pages: Math.ceil(total / limit),
-      currentPage: page
+      pages: Math.ceil(total / limitNum),
+      currentPage: pageNum,
+      hasNext: pageNum < Math.ceil(total / limitNum),
+      hasPrev: pageNum > 1
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Error fetching blog posts:', error);
+    res.status(500).json({ 
+      message: 'Internal server error', 
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
+    });
   }
 });
 
@@ -173,30 +239,70 @@ router.get('/category/:category', async (req, res) => {
   }
 });
 
-// GET /api/blog/search - Search posts
-router.get('/search', async (req, res) => {
+// GET /api/blog/search - Search posts with validation
+router.get('/search', [
+  query('query').trim().isLength({ min: 1 }).withMessage('Search query is required'),
+  query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
+  query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50')
+], async (req, res) => {
   try {
-    const { query, page = 1, limit = 12 } = req.query;
-    
-    if (!query) {
-      return res.status(400).json({ message: 'Search query is required' });
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        message: 'Validation failed', 
+        errors: errors.array() 
+      });
     }
+
+    const { query: searchQuery, page = 1, limit = 12 } = req.query;
     
-    const result = await Blog.searchPosts(query, limit, page);
-    res.json(result);
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    
+    const result = await Blog.searchPosts(searchQuery, limitNum, pageNum);
+    
+    res.json({
+      ...result,
+      currentPage: pageNum,
+      hasNext: pageNum < result.pages,
+      hasPrev: pageNum > 1
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Search route error:', error);
+    res.status(500).json({ 
+      message: 'Internal server error', 
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
+    });
   }
 });
 
-// GET /api/blog/popular - Get popular posts
-router.get('/popular', async (req, res) => {
+// GET /api/blog/popular - Get popular posts with validation
+router.get('/popular', [
+  query('limit').optional().isInt({ min: 1, max: 20 }).withMessage('Limit must be between 1 and 20')
+], async (req, res) => {
   try {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        message: 'Validation failed', 
+        errors: errors.array() 
+      });
+    }
+
     const { limit = 10 } = req.query;
-    const posts = await Blog.getPopularPosts(limit);
+    const limitNum = parseInt(limit);
+    
+    const posts = await Blog.getPopularPosts(limitNum);
+    
     res.json(posts);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Popular route error:', error);
+    res.status(500).json({ 
+      message: 'Internal server error', 
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
+    });
   }
 });
 
