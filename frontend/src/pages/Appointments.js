@@ -18,79 +18,26 @@ const Appointments = () => {
     consultationType: 'general'
   });
 
-  // Mock data for doctors
-  const mockDoctors = [
-    {
-      id: 1,
-      name: 'Dr. Sarah Chen',
-      specialization: 'Cardiology',
-      hospital: 'Main Hospital, Downtown',
-      consultationFee: 150,
-      city: 'Downtown',
-      availability: 'Tomorrow'
-    },
-    {
-      id: 2,
-      name: 'Dr. Michael Rodriguez',
-      specialization: 'Dermatology',
-      hospital: 'Skin Care Center, Westside',
-      consultationFee: 120,
-      city: 'Westside',
-      availability: 'Today'
-    },
-    {
-      id: 3,
-      name: 'Dr. James Wilson',
-      specialization: 'Orthopedics',
-      hospital: 'Sports Medicine Center',
-      consultationFee: 180,
-      city: 'Downtown',
-      availability: 'This week'
-    },
-    {
-      id: 4,
-      name: 'Dr. Emily Park',
-      specialization: 'Pediatrics',
-      hospital: 'Children\'s Hospital, Northside',
-      consultationFee: 100,
-      city: 'Northside',
-      availability: 'Tomorrow'
-    },
-    {
-      id: 5,
-      name: 'Dr. Robert Kim',
-      specialization: 'Neurology',
-      hospital: 'Neuro Center, Downtown',
-      consultationFee: 200,
-      city: 'Downtown',
-      availability: 'Next week'
-    },
-    {
-      id: 6,
-      name: 'Dr. Lisa Thompson',
-      specialization: 'Gynecology',
-      hospital: 'Women\'s Health Center',
-      consultationFee: 130,
-      city: 'Downtown',
-      availability: 'Today'
-    }
-  ];
-
   useEffect(() => {
-    const fetchAppointments = async () => {
+    const fetchData = async () => {
       try {
-        const response = await api.get('/api/appointments/patient');
-        setAppointments(response.data.data);
+        // Fetch appointments and doctors data concurrently
+        const [appointmentsRes, doctorsRes] = await Promise.all([
+          api.get('/api/appointments/patient'),
+          api.get('/api/doctors')
+        ]);
+
+        setAppointments(appointmentsRes.data.data || []);
+        setDoctors(doctorsRes.data.data || []);
       } catch (err) {
-        setError('Failed to fetch appointments. Please try again later.');
+        setError('Failed to fetch data. Please try again later.');
+        console.error('Error fetching data:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    // Set doctors from mock data instead of API call
-    setDoctors(mockDoctors);
-    fetchAppointments();
+    fetchData();
   }, []);
 
   const handleAddAppointment = async (e) => {

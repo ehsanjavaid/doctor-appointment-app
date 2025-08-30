@@ -13,6 +13,7 @@ import {
   ChevronDown,
   X
 } from 'lucide-react';
+import api from '../utils/api';
 
 const DoctorSearch = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -22,100 +23,6 @@ const DoctorSearch = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [doctors, setDoctors] = useState([]);
-
-  // Mock data for doctors
-  const mockDoctors = [
-    {
-      id: 1,
-      name: 'Dr. Sarah Chen',
-      specialty: 'Cardiology',
-      image: '/images/doctor-1.jpg',
-      rating: 4.9,
-      reviews: 127,
-      experience: '15 years',
-      location: 'Main Hospital, Downtown',
-      availability: 'Tomorrow',
-      languages: ['English', 'Mandarin'],
-      education: 'Harvard Medical School',
-      fee: '$150',
-      nextAvailable: '2024-02-20'
-    },
-    {
-      id: 2,
-      name: 'Dr. Michael Rodriguez',
-      specialty: 'Dermatology',
-      image: '/images/doctor-2.jpg',
-      rating: 4.8,
-      reviews: 89,
-      experience: '12 years',
-      location: 'Skin Care Center, Westside',
-      availability: 'Today',
-      languages: ['English', 'Spanish'],
-      education: 'Johns Hopkins University',
-      fee: '$120',
-      nextAvailable: '2024-02-19'
-    },
-    {
-      id: 3,
-      name: 'Dr. James Wilson',
-      specialty: 'Orthopedics',
-      image: '/images/doctor-3.jpg',
-      rating: 4.7,
-      reviews: 156,
-      experience: '18 years',
-      location: 'Sports Medicine Center',
-      availability: 'This week',
-      languages: ['English'],
-      education: 'Stanford University',
-      fee: '$180',
-      nextAvailable: '2024-02-22'
-    },
-    {
-      id: 4,
-      name: 'Dr. Emily Park',
-      specialty: 'Pediatrics',
-      image: '/images/doctor-4.jpg',
-      rating: 4.9,
-      reviews: 203,
-      experience: '10 years',
-      location: 'Children\'s Hospital, Northside',
-      availability: 'Tomorrow',
-      languages: ['English', 'Korean'],
-      education: 'UCLA Medical School',
-      fee: '$100',
-      nextAvailable: '2024-02-20'
-    },
-    {
-      id: 5,
-      name: 'Dr. Robert Kim',
-      specialty: 'Neurology',
-      image: '/images/doctor-5.jpg',
-      rating: 4.6,
-      reviews: 78,
-      experience: '14 years',
-      location: 'Neuro Center, Downtown',
-      availability: 'Next week',
-      languages: ['English', 'Korean'],
-      education: 'Mayo Clinic',
-      fee: '$200',
-      nextAvailable: '2024-02-25'
-    },
-    {
-      id: 6,
-      name: 'Dr. Lisa Thompson',
-      specialty: 'Gynecology',
-      image: '/images/doctor-6.jpg',
-      rating: 4.8,
-      reviews: 142,
-      experience: '11 years',
-      location: 'Women\'s Health Center',
-      availability: 'Today',
-      languages: ['English', 'French'],
-      education: 'Yale Medical School',
-      fee: '$130',
-      nextAvailable: '2024-02-19'
-    }
-  ];
 
   const specialties = [
     'Cardiology', 'Dermatology', 'Orthopedics', 'Pediatrics',
@@ -133,21 +40,27 @@ const DoctorSearch = () => {
   ];
 
   useEffect(() => {
-    // Simulate loading doctors
-    setIsLoading(true);
-    const timer = setTimeout(() => {
-      setDoctors(mockDoctors);
-      setIsLoading(false);
-    }, 1000);
+    const fetchDoctors = async () => {
+      setIsLoading(true);
+      try {
+        const response = await api.get('/api/doctors');
+        setDoctors(response.data.data || []);
+      } catch (error) {
+        console.error('Error fetching doctors:', error);
+        setDoctors([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    return () => clearTimeout(timer);
+    fetchDoctors();
   }, []);
 
   const filteredDoctors = doctors.filter(doctor => {
     const matchesSearch = doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         doctor.specialty.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSpecialty = !selectedSpecialty || doctor.specialty === selectedSpecialty;
-    const matchesLocation = !selectedLocation || doctor.location.includes(selectedLocation);
+                         doctor.specialization.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSpecialty = !selectedSpecialty || doctor.specialization === selectedSpecialty;
+    const matchesLocation = !selectedLocation || doctor.hospital.includes(selectedLocation) || doctor.city.includes(selectedLocation);
     const matchesAvailability = !selectedAvailability || doctor.availability === selectedAvailability;
 
     return matchesSearch && matchesSpecialty && matchesLocation && matchesAvailability;
@@ -361,7 +274,7 @@ const DoctorSearch = () => {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-900">{doctor.name}</h3>
-                      <p className="text-primary-600 font-medium">{doctor.specialty}</p>
+                      <p className="text-primary-600 font-medium">{doctor.specialization}</p>
                     </div>
                   </div>
 
@@ -369,36 +282,30 @@ const DoctorSearch = () => {
                   <div className="flex items-center space-x-2 mb-3">
                     <div className="flex items-center">
                       <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                      <span className="ml-1 text-sm font-medium text-gray-900">{doctor.rating}</span>
+                      <span className="ml-1 text-sm font-medium text-gray-900">{doctor.rating || 0}</span>
                     </div>
-                    <span className="text-sm text-gray-600">({doctor.reviews} reviews)</span>
+                    <span className="text-sm text-gray-600">({doctor.totalReviews || 0} reviews)</span>
                   </div>
 
                   {/* Details */}
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center text-sm text-gray-600">
                       <Award className="w-4 h-4 mr-2" />
-                      <span>{doctor.experience} experience</span>
+                      <span>{doctor.experience} years experience</span>
                     </div>
                     <div className="flex items-center text-sm text-gray-600">
                       <MapPin className="w-4 h-4 mr-2" />
-                      <span>{doctor.location}</span>
+                      <span>{doctor.hospital}, {doctor.city}</span>
                     </div>
                     <div className="flex items-center text-sm text-gray-600">
                       <Clock className="w-4 h-4 mr-2" />
-                      <span>Next available: {doctor.nextAvailable}</span>
+                      <span>Available for {doctor.onlineConsultation ? 'online' : ''}{doctor.onlineConsultation && doctor.offlineConsultation ? ' & ' : ''}{doctor.offlineConsultation ? 'in-person' : ''} consultation</span>
                     </div>
-                  </div>
-
-                  {/* Languages */}
-                  <div className="mb-4">
-                    <span className="text-xs text-gray-500">Languages: </span>
-                    <span className="text-xs text-gray-700">{doctor.languages.join(', ')}</span>
                   </div>
 
                   {/* Actions */}
                   <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-gray-900">{doctor.fee}</span>
+                    <span className="text-lg font-bold text-gray-900">${doctor.consultationFee}</span>
                     <Link
                       to={`/book-appointment/${doctor.id}`}
                       className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium flex items-center"

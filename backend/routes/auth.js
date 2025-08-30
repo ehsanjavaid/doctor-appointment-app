@@ -53,7 +53,8 @@ router.post('/register', [
       email,
       password,
       phone,
-      role
+      role,
+      isVerified: true
     };
 
     // Add doctor-specific fields

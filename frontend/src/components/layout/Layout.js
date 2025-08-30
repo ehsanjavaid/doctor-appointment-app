@@ -18,7 +18,12 @@ import {
   Facebook,
   Twitter,
   Instagram,
-  Linkedin
+  Linkedin,
+  Users,
+  DollarSign,
+  Heart,
+  FileText,
+  Clipboard
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
@@ -44,6 +49,31 @@ const Layout = ({ children }) => {
     { name: 'Appointments', href: '/appointments', icon: Calendar },
     { name: 'Profile', href: '/profile', icon: Settings },
   ];
+
+  // Role-specific menu items
+  const doctorMenuItems = [
+    { name: 'My Schedule', href: '/doctor/schedule', icon: Calendar },
+    { name: 'Patients', href: '/doctor/patients', icon: Users },
+    { name: 'Earnings', href: '/doctor/earnings', icon: DollarSign },
+  ];
+
+  const patientMenuItems = [
+    { name: 'My Health', href: '/patient/health', icon: Heart },
+    { name: 'Prescriptions', href: '/prescriptions', icon: FileText },
+    { name: 'Medical Records', href: '/medical-records', icon: Clipboard },
+  ];
+
+  // Get role-specific menu items
+  const getRoleMenuItems = () => {
+    if (user?.role === 'doctor') {
+      return [...userMenuItems, ...doctorMenuItems];
+    } else if (user?.role === 'patient') {
+      return [...userMenuItems, ...patientMenuItems];
+    }
+    return userMenuItems;
+  };
+
+  const roleMenuItems = getRoleMenuItems();
 
   const handleLogout = () => {
     logout();
@@ -97,7 +127,7 @@ const Layout = ({ children }) => {
                   {/* Dropdown Menu */}
                   <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-large opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                     <div className="py-2">
-                      {userMenuItems.map((item) => (
+                      {roleMenuItems.map((item) => (
                         <Link
                           key={item.name}
                           to={item.href}
@@ -187,7 +217,7 @@ const Layout = ({ children }) => {
                       </div>
                     </div>
 
-                    {userMenuItems.map((item) => (
+                    {roleMenuItems.map((item) => (
                       <Link
                         key={item.name}
                         to={item.href}
