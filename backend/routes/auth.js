@@ -69,21 +69,12 @@ router.post('/register', [
 
     const user = await User.create(userData);
 
-    // Generate verification token
-    const verificationToken = crypto.randomBytes(20).toString('hex');
-    user.emailVerificationToken = crypto
-      .createHash('sha256')
-      .update(verificationToken)
-      .digest('hex');
-    user.emailVerificationExpire = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
-    await user.save();
-
     // Generate JWT token
     const token = generateToken(user._id);
 
     res.status(201).json({
       success: true,
-      message: 'User registered successfully. Please check your email for verification.',
+      message: 'User registered successfully. Your account is now active and verified.',
       token,
       user: {
         id: user._id,
@@ -99,9 +90,6 @@ router.post('/register', [
         consultationFee: user.consultationFee
       }
     });
-
-    // TODO: Send verification email
-    // await sendVerificationEmail(user.email, verificationToken);
 
   } catch (error) {
     console.error('Registration error:', error);
